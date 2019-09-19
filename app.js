@@ -16,9 +16,52 @@ Add event handler for entering expenses/deposits
 
 //Creating modules for various aspects of the app
 var budgetController = (function(){
+    var Expense = function(id,description,value){
+        this.id = id;
+        this.description = description;
+        this.value = value;
+    };
+    var Income = function(id,description,value){
+        this.id = id;
+        this.description = description;
+        this.value = value;
+    };
 
-    //some code
-
+    var data = {
+        allItems: {
+            exp: [],
+            inc: []
+        },
+        totals: {
+            exp: 0,
+            inc: 0
+        }
+    }
+    return{
+        addItem: function(type, desc, val){
+            var newItem, ID;
+            //Create new ID based on the last ID in 'inc' or 'exp' arrays
+            if (data.allItems[type].length > 0){
+                ID = data.allItems[type][data.allItems[type].length - 1].id + 1;
+            }else{
+                ID = 0;
+            }
+            
+            //Create new item based on 'inc' or 'exp'
+            if (type === 'exp'){
+                newItem = new Expense(ID, desc, val)
+            }else{
+                newItem = new Income(ID, desc, val)
+            }
+            //push newItem into data structure and return it
+            data.allItems[type].push(newItem);
+            return newItem;
+        },
+        //Testing that new items get properly added to data structure
+        testing: function(){
+            console.log(data);
+        }
+    }
 })();
 var uiController = (function(){
     var DOMstrings = {
@@ -26,6 +69,8 @@ var uiController = (function(){
         inputDescription: '.add__description',
         inputValue: '.add__value',
         inputBtn: '.add__btn',
+        incContainer: '.income__list',
+        expContainer: '.expenses__list'
     };
     return {
         getInput: function(){
@@ -35,8 +80,25 @@ var uiController = (function(){
                 value: document.querySelector(DOMstrings.inputValue).value
             };
         },
+        addListItem: function(obj, type){
+            var html, newHTML, element;
+            //CREATE HTML Placeholder
+            if(type === 'inc'){
+                element = DOMstrings.incContainer;
+                html = '<div class="item clearfix" id="income-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__delete"><buttonclass="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>'
+            }else if(type === 'exp'){
+                element = DOMstrings.expContainer;
+                html = '<div class="item clearfix" id="expense-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>'
+            }
+            //Replace placeholder with real data
+            newHTML = html.replace('%id%',obj.id);
+            newHTML = newHTML.replace('%description%', obj.description);
+            newHTML = newHTML.replace('%value%',obj.value);
+            //Inster HTML into DOM
+            document.querySelector(element).insertAdjacentHTML('beforeend', newHTML);
+        },
         getDOMstrings: function(){
-            return DOMstrings;0
+            return DOMstrings;
         }
     };
 })();
@@ -54,13 +116,13 @@ var appController = (function(budgetCtrl, UICtrl){
     };
     
     var ctrlAddItem = function(){
+        var inpute, newItem;
         // 1. Get input data
-        var input = uiController.getInput();
-        console.log(input);
+        input = uiController.getInput();
         // 2. add item to budget controller
-
+        newItem = budgetCtrl.addItem(input.type, input.description, input.value);
         // 3. add item to UI
-
+        UICtrl.addListItem(newItem, input.type);
         // 4. Calculate new budget
 
         // 5. display new budget to UI
@@ -70,9 +132,10 @@ var appController = (function(budgetCtrl, UICtrl){
         init: function(){
             setupEventListeners();
         }
-    }
+    };
 })(budgetController, uiController);
 
+appController.init();
 
 
 
