@@ -1,20 +1,13 @@
 /*
 -----------------TO-DOs:
-- DATA MODULE - 
-add data from above into internal data structure
-calculate new budget
-
-- UI MODULE - 
-get input values for the description/value fields
-after added to data structure then display on UI
-update UI with new budget
-
-- CONTROLLER MODULE - 
-Add event handler for entering expenses/deposits
-
+Add event handler to delete button
+    Delete item from data structure
+    Delete item from UI 
+Recalc budget
+Update UI after recalc
 */
 
-//Creating modules for various aspects of the app
+//3 modules - Budget for performing maths / UI for DOM manipulation / App for controlling functionality
 var budgetController = (function(){
     var Expense = function(id,description,value){
         this.id = id;
@@ -98,7 +91,11 @@ var uiController = (function(){
         inputValue: '.add__value',
         inputBtn: '.add__btn',
         incContainer: '.income__list',
-        expContainer: '.expenses__list'
+        expContainer: '.expenses__list',
+        budgetLabel: '.budget__value',
+        incLabel: '.budget__income--value',
+        expLabel: '.budget__expenses--value',
+        percentLabel: '.budget__expenses--percentage'
     };
     return {
         getInput: function(){
@@ -134,6 +131,16 @@ var uiController = (function(){
             });
             fieldsArray[0].focus();
         },
+        displayBudget: function(obj){
+            document.querySelector(DOMstrings.budgetLabel).textContent = obj.budget;
+            document.querySelector(DOMstrings.incLabel).textContent = obj.totalInc;
+            document.querySelector(DOMstrings.expLabel).textContent = obj.totalExp;
+            if(obj.percentage > 0){
+                document.querySelector(DOMstrings.percentLabel).textContent = obj.percentage + '%';
+            }else{
+                document.querySelector(DOMstrings.percentLabel).textContent = '--';
+            }
+        },
         getDOMstrings: function(){
             return DOMstrings;
         }
@@ -158,7 +165,7 @@ var appController = (function(budgetCtrl, UICtrl){
         // 2. Return budget
         var budget = budgetCtrl.getBudget();
         // 3. display new budget to UI
-        console.log(budget);
+        uiController.displayBudget(budget);
     }
     var ctrlAddItem = function(){
         var input, newItem;
@@ -177,6 +184,12 @@ var appController = (function(budgetCtrl, UICtrl){
     };
     return {
         init: function(){
+            uiController.displayBudget({
+                budget: 0,
+                totalInc: 0,
+                totalExp: 0,
+                percentage: -1
+            });
             setupEventListeners();
         }
     };
